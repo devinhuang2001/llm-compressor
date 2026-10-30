@@ -169,10 +169,12 @@ def format_calibration_data(
     kwargs: dict[str, Any] = {}
     if num_workers > 0:
         kwargs["persistent_workers"] = True
+    sampler = _make_sampler(args, tokenized_dataset)
     return DataLoader(
-        tokenized_dataset,
+        # The sampler may index a rank-local partition of the dataset.
+        sampler.data_source,
         batch_size=args.batch_size,
-        sampler=_make_sampler(args, tokenized_dataset),
+        sampler=sampler,
         collate_fn=_make_collate_fn(args, processor),
         pin_memory=pin_memory,
         num_workers=num_workers,
